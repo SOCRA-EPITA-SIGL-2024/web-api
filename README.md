@@ -183,7 +183,6 @@ Here are some expample of query/response on your service:
 curl -XPOST -H "Content-Type: application/json" -d '{"position": {"lat": 48.856614,"lng": 2.3522219}}' http://localhost:3000/v1/product\?radius=10
 ```
 
-- **distance** should be **lower or equal** to the radius provided (in km)
 - this should return (we prettified it for you):
 
 ```json
@@ -353,8 +352,11 @@ curl -XPOST -H "Content-Type: application/json" -d '{"position": {"lat": 48.8566
 
 This distance **must** be computed using the `distance` function provided by the template.
 
-You have an example how to use this method in the [distance from the eiffel tower service provided by the template](https://github.com/SOCRA-EPITA-SIGL-2024/web-api-template#distance-from-eiffel-tower-service)
+Gardens returned should have its **distance lower or equal** than the radius provided by the consumer (e.g. `?radius=15`).
 
+`radius` are always considered in km.
+
+You have an example how to use this method in the [distance from the eiffel tower service provided by the template](https://github.com/SOCRA-EPITA-SIGL-2024/web-api-template#distance-from-eiffel-tower-service)
 
 ## Step 2: Deploy your web API
 
@@ -500,7 +502,7 @@ After few minutes, you should be able to access your web API on [https://api.gro
 
 A bit of explanations:
 
-- [React.useEffect](https://reactjs.org/docs/hooks-reference.html#useeffect) is will apply the anonymous function as first parameter **ONLY** when the list of dependencies changes:
+- [React.useEffect](https://react.dev/reference/react/useEffect) is will apply the anonymous function as first parameter **ONLY** when the list of dependencies changes:
   - `loading` : when the user position is ready (e.g. loading is `false`); we can call our API with `lat` and `lng` corresponding to the user position
 
 > Note: this is happening **ONLY** once because the second parameter of `React.useEffect` is `[]`. If the second parameter's array contains any value; then the function in first parameter will be executed everytime the values in array changes.
@@ -508,8 +510,10 @@ A bit of explanations:
 One caveat of using `React.useEffect` is that the function in parameter cannot be asynchronous. This is why we create `fetchGarden` function and call it right after.
 
 > This code uses [`async` and `await`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function) keywords.
+>
 > Feel free to read the doc of [MDN on using Promises](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Using_promises) to be more familiar with asynchronous code in JavaScript
 > Feel free to read more about `React.useState` and `React.useEffect` on the official React documentation
+>
 > Have a look at [how to use fetch API from MDN](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch) if you want to know what the Fetch API offers
 
 #### Use your data in your different views
@@ -583,17 +587,30 @@ We've provided the code from the template updated:
 - Boissons [frontend/src/Juices.jsx](https://github.com/SOCRA-EPITA-SIGL-2024/frontend-template/blob/web-api/src/Juices.jsx) displays the list of juices available around or `Aucune boisson disponible dans un rayon de 15 km` if no juices are available
 - Vin et spiritueux [frontend/src/Wines.jsx](https://github.com/SOCRA-EPITA-SIGL-2024/frontend-template/blob/web-api/src/Wines.jsx) displays the list of wines around or `Aucun vin disponible dans un rayon de 15 km` if no juices are available
 
+The template is using images from [Pixabay.com](https://pixabay.com/fr/) which offers open-source images. The template adds images in [`frontend/src/images`](https://github.com/SOCRA-EPITA-SIGL-2024/frontend-template/tree/web-api/src/images) folder and uses it like in javascript like:
+
+```jsx
+import imgWineGlass from "./images/wine.jpg";
+//...
+<img src={imgWineGlass} />
+// ...
+```
+
+> Note: feel free to check [how vitejs handles assets](https://vitejs.dev/guide/assets.html)
+
 At last, to have unique identifier for each product we can add to basket, we decided to create a `productId` using the garden id and the product name separated with a `-`. For instance, in wines React Component, we define the id like
 
 ```js
 const productId = `${wine.gardenId}-${wine.name}`;
 ```
 
-You now have everything to adapt your own code.
+Then we've adapted the `AppContext` and the `REMOVE_BASKET_ITEM` action to use `item.id` for filtering items.
+
+You now have everything to adapt your own code!
 
 ### Step 4: Adaptation for grading
 
-We are grading your workshop using code automation, so please be very sure that you have correct frontend routes (exact match) and correct `socra=...` anchors in your HTML.
+We are grading your workshop using code automation, so please be very sure that you have correct frontend routes (exact match) and correct `socra=...` attributes in your HTML elements.
 
 The grading tool will simulate a specific geo position and make sure corresponding products are rendered.
 
@@ -624,10 +641,9 @@ Your web service should expose `gardens` around users with given radius with:
 
 should return a JSON array of all gardens around (matching reponse format explained in step 1)
 
-#### `socra=...` HTML anchors
+#### `socra=...` HTML attribute
 
 Make sure that your `ProductCard` or your own React component to render product items has the HTML attribute `socra="product-item"`
-
 
 ### About the CORS issue
 
